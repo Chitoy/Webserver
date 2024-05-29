@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>注册</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa; /* 背景色 */
+        }
+        #video-background {
+            position: fixed;
+            right: 0;
+            bottom: 0;
+            width: 100%; 
+            height: auto;
+            z-index: -1000;
+        }
+        .container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 255, 255, 0.7); /* 半透明白色背景 */
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 300px; /* 定义容器宽度 */
+            text-align: center; /* 内容水平居中 */
+        }
+        .container h2 {
+            color: #007bff; /* 蓝色 */
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group input {
+            width: calc(100% - 22px); /* 考虑边框宽度 */
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .btn {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff; /* 蓝色 */
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .btn:disabled {
+            background-color: #8295ce; /* 设置禁用状态下的背景颜色 */
+            color: #fff; /* 设置禁用状态下的文本颜色 */
+            cursor: not-allowed; /* 设置禁用状态下的鼠标样式 */
+        }
+
+        #toggleButton {
+            margin-top: 10px;
+            text-decoration: underline; /* 添加下划线 */
+            color: #007bff; /* 蓝色 */
+            cursor: pointer;
+        }
+        #captchaButton {
+            margin-top: 10px;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff; /* 蓝色 */
+            color: #fff;
+            cursor: pointer;
+        }
+        #captchaInput {
+            width: calc(100% - 150px); /* 考虑按钮宽度 */
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <video autoplay muted loop id="video-background">
+        <source src="video/2.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
+    <div class="container">
+        <h2>樱桃账户注册</h2>
+        <form id="registerForm" action="#" method="post">
+            <div class="form-group">
+                <input type="text" name="username" id="username" placeholder="用户名" required>
+            </div>
+            <div class="form-group">
+                <input type="email" name="email" id="email" placeholder="邮箱" required>
+            </div>
+            <div class="form-group">
+                <input type="password" name="password" id="password" placeholder="密码" required>
+            </div>
+            <div class="form-group">
+                <input type="password" name="confirm_password" id="confirm_password" placeholder="确认密码" required>
+            </div>
+            <div class="form-group">
+                <input type="text" name="captcha" id="captchaInput" placeholder="验证码" required>
+                <button type="button" id="captchaButton">获取验证码</button>
+            </div>
+            <div class="form-group">
+                <button type="submit" id="registerButton" class="btn">注册</button>
+            </div>
+        </form>
+        <div id="toggleButton">
+            <a href="../">返回登录</a> <!-- 添加登录页面链接 -->
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var video = document.getElementById('video-background');
+            var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+            if (isMobile) {
+                video.querySelector('source').src = 'video/太极.mp4';
+            } else {
+                video.querySelector('source').src = 'video/2.mp4';
+            }
+
+            video.load();
+
+
+            var captchaButton = document.getElementById('captchaButton');
+            var registerButton = document.getElementById('registerButton');
+            var countdown = 60;
+            var timer;
+            var isCounting = false;
+
+            captchaButton.addEventListener('click', function () {
+                var username = document.getElementById('username').value;
+                var email = document.getElementById('email').value;
+                var password = document.getElementById('password').value;
+                var confirm_password = document.getElementById('confirm_password').value;
+
+                if(!username)
+                {
+                    alert('请填写用户名！');
+                    return;
+                }
+
+                // 验证用户名长度
+                if(username.length < 3 || username.length > 20)
+                {
+                    alert('用户名长度必须在3到20个字符之间！');
+                    return;
+                }
+
+                if(!email)
+                {
+                    alert('请填写邮箱！');
+                    return;
+                }
+
+                if (!validateEmail(email)) {
+                    alert('请输入有效的邮箱地址！');
+                    return;
+                }
+
+                if(!password)
+                {
+                    alert('请填写密码！');
+                    return;
+                }
+
+                // 验证密码长度和包含字母
+                if(password.length < 6 || !/[a-zA-Z]/.test(password))
+                {
+                    alert('密码长度必须不小于6个字符，并且必须包含至少一个字母！');
+                    return;
+                }
+
+                if(!confirm_password)
+                {
+                    alert('请填写确认密码！');
+                    return;
+                }
+
+                if (password !== confirm_password) {
+                    alert('两次密码输入不一致！');
+                    return;
+                }
+
+                if (isCounting) {
+                    return;
+                }
+
+                // Construct JSON object
+                var userData = {
+                    "username": username,
+                    "email": email,
+                    "password": password,
+                    "confirm_password": confirm_password
+                };
+
+                sendRegisterData(userData);
+
+                // Mocking sending request and receiving response
+                // Here you would send a request to the backend to get the captcha code
+                // For demonstration purposes, let's just set a timer for 60 seconds
+                if (!timer) {
+                    isCounting = true;
+                    timer = setInterval(function () {
+                        countdown--;
+                        if (countdown <= 0) {
+                            clearInterval(timer);
+                            captchaButton.innerText = '获取验证码';
+                            countdown = 60;
+                            timer = null;
+                            isCounting = false;
+                        } else {
+                            captchaButton.innerText = '重新获取(' + countdown + 's)';
+                        }
+                    }, 1000);
+                }
+            });
+
+            registerButton.addEventListener('click', function (event){
+                var username = document.getElementById('username').value;
+                var email = document.getElementById('email').value;
+                var password = document.getElementById('password').value;
+                var confirm_password = document.getElementById('confirm_password').value;
+                var captcha = document.getElementById('captchaInput').value;
+
+                if(!username)
+                {
+                    alert('请填写用户名！');
+                    return;
+                }
+
+                // 验证用户名长度
+                if(username.length < 3 || username.length > 20)
+                {
+                    alert('用户名长度必须在3到20个字符之间！');
+                    return;
+                }
+
+                if(!email)
+                {
+                    alert('请填写邮箱！');
+                    return;
+                }
+
+                if (!validateEmail(email)) {
+                    alert('请输入有效的邮箱地址！');
+                    return;
+                }
+
+                if(!password)
+                {
+                    alert('请填写密码！');
+                    return;
+                }
+
+                // 验证密码长度和包含字母
+                if(password.length < 6 || !/[a-zA-Z]/.test(password))
+                {
+                    alert('密码长度必须不小于6个字符，并且必须包含至少一个字母！');
+                    return;
+                }
+
+                if(!confirm_password)
+                {
+                    alert('请填写确认密码！');
+                    return;
+                }
+
+                if (password !== confirm_password) {
+                    alert('两次密码输入不一致！');
+                    return;
+                }
+
+                // 对验证码进行格式和长度验证
+                if (captcha.length !== 4 || !/^\d{4}$/.test(captcha)) {
+                    alert('验证码格式不正确！');
+                    return;
+                }
+
+                // 构造 JSON 对象
+                var userData = {
+                    "username": username,
+                    "email": email,
+                    "password": password,
+                    "confirm_password": confirm_password,
+                    "captcha": captcha // 添加验证码字段
+                };
+
+                //发送注册数据
+                submitRegisterData(userData);
+                // 禁用注册按钮
+                registerButton.disabled = true;
+
+            });
+
+            function validateEmail(email) {
+                // Regular expression to validate email format
+                var regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                return regex.test(email);
+            }
+
+            function sendRegisterData(userData){
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", "http://www.chitoy.top/api/getcode", true);
+                xhr.setRequestHeader("Content-Type", "application/json");
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState === 4) {
+                        if (xhr.status === 200) {
+                            // 成功接收到响应后处理返回的信息
+                            alert(xhr.responseText); // 直接使用返回的文本数据
+                        } else {
+                            // 请求失败时给出提示
+                            alert("请求失败，状态码：" + xhr.status);
+                        }
+                    }
+                };
+                xhr.send(JSON.stringify(userData));
+            }
+
+            function submitRegisterData(userData){
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", "http://www.chitoy.top/api/register", true);
+                xhr.setRequestHeader("Content-Type", "application/json");
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState === 4) {
+                        if (xhr.status === 200) {
+                            // 成功接收到响应后处理返回的信息
+                            alert(xhr.responseText); // 直接使用返回的文本数据 
+                            // 启用注册按钮
+                            registerButton.disabled = false;
+                            window.location.href = "../";
+                        } else {
+                            // 请求失败时给出提示
+                            alert("请求失败，状态码：" + xhr.status);
+                            // 启用注册按钮
+                            registerButton.disabled = false;
+                        }
+                    }
+                };
+                xhr.send(JSON.stringify(userData));
+            }
+
+            
+        });
+    </script>
+</body>
+</html>

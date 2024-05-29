@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        #video-background {
+            position: fixed;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            height: auto;
+            z-index: -1000;
+        }
+
+        .container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 255, 255, 0.7);
+            /* 半透明白色背景 */
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            /* 定义容器宽度 */
+            text-align: center;
+            /* 内容水平居中 */
+        }
+
+        .container h2 {
+            color: #007bff;
+            /* 蓝色 */
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group input {
+            width: calc(100% - 22px);
+            /* 考虑边框宽度 */
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            /* 蓝色 */
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .btn:disabled {
+            background-color: #8295ce;
+            /* 设置禁用状态下的背景颜色 */
+            color: #fff;
+            /* 设置禁用状态下的文本颜色 */
+            cursor: not-allowed;
+            /* 设置禁用状态下的鼠标样式 */
+        }
+
+        #toggleButton {
+            margin-top: 10px;
+            text-decoration: underline;
+            /* 添加下划线 */
+            color: #007bff;
+            /* 蓝色 */
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <video autoplay muted loop id="video-background">
+        <source src="video/1.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
+    <div class="container">
+        <h2>樱桃账户登录</h2>
+        <form id="loginForm" action="#" method="post">
+            <div class="form-group">
+                <input type="text" name="username" placeholder="邮箱" required>
+            </div>
+            <div class="form-group">
+                <input type="password" name="password" placeholder="密码" required>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="登录" class="btn">
+            </div>
+        </form>
+        <div id="toggleButton">
+            <a href="register">注册</a> <!-- 添加注册页面链接 -->
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            var video = document.getElementById('video-background');
+            var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+            if (isMobile) {
+                video.querySelector('source').src = 'video/飞机.mp4';
+            } else {
+                video.querySelector('source').src = 'video/1.mp4';
+            }
+
+            video.load();
+
+            var loginForm = document.getElementById('loginForm');
+            var loginButton = loginForm.querySelector('.btn');
+
+            loginForm.addEventListener('submit', function (event) {
+                event.preventDefault(); // 阻止表单默认提交行为
+
+                var username = loginForm.elements['username'].value;
+                var password = loginForm.elements['password'].value;
+
+                if (!username) {
+                    alert('请填写用户名！');
+                    return;
+                }
+
+                // 验证用户名长度
+                if (username.length < 3 || username.length > 20) {
+                    alert('用户名长度必须在3到20个字符之间！');
+                    return;
+                }
+
+                // 禁用登录按钮
+                loginButton.disabled = true;
+
+                var userData = {
+                    "username": username,
+                    "password": password
+                };
+
+                sendLoginData(userData);
+            });
+
+            function sendLoginData(userData) {
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', 'http://www.chitoy.top/api/login', true);
+                xhr.setRequestHeader('Content-Type', 'application/json');
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState === 4) {
+                        if (xhr.status === 200) {
+                            var response = JSON.parse(xhr.responseText);
+                            var token = response.token;
+                            var url=response.url;
+                            window.location.href =url;
+                            loginButton.disabled = false;
+                        }
+                        else {
+                            alert('服务器应答:'+xhr.responseText);
+                            loginButton.disabled = false;
+                        }
+                    }
+                };
+                xhr.send(JSON.stringify(userData));
+            }
+
+            function handleToken(token) {
+                // 在此处处理令牌，例如存储到本地存储或会话存储中
+                localStorage.setItem('yingtaotoken', token);
+            }
+
+            function getTokenFromStorage() {
+                // 从 localStorage 中获取令牌
+                var token = localStorage.getItem('yingtaotoken');
+                return token;
+            }
+        });
+    </script>
+</body>
+
+</html>
